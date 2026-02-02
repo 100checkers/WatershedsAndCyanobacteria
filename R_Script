@@ -1,0 +1,726 @@
+#Load data for data by location groups
+install.packages("data.table")
+install.packages("mfx")
+install.packages("censReg")
+install.packages("tidyverse")
+
+library("data.table")
+library(data.table)
+library(dplyr)
+library(ggplot2)
+library(stargazer)
+library(sandwich)
+library(mfx) 
+library(censReg) 
+library(tidyverse)
+library(car)
+
+MaxCD <- fread(file = "MaxCD.csv")
+TN <- fread(file = "TN.csv")
+TP <- fread(file = "TP.csv")
+Precip <- fread(file = "Precip.csv")
+MaxCD_Forest <- fread(file = "MaxCD_Forest.csv")
+MaxCD_AgricultureStrat <- fread(file = "MaxCD_AgricultureStrat.csv")
+MaxCD_AgricultureNoStrat <- fread(file = "MaxCD_AgricultureNoStrat.csv")
+TN_Forest <- fread(file = "TN_Forest.csv")
+TN_AgricultureStrat <- fread(file = "TN_AgricultureStrat.csv")
+TN_AgricultureNoStrat <- fread(file = "TN_AgricultureNoStrat.csv")
+TP_Forest <- fread(file = "TP_Forest.csv")
+TP_AgricultureStrat <- fread(file = "TP_AgricultureStrat.csv")
+TP_AgricultureNoStrat <- fread(file = "TP_AgricultureNoStrat.csv")
+Precip_Forest <- fread(file = "Precip_Forest.csv")
+Precip_AgricultureStrat <- fread(file = "Precip_AgricultureStrat.csv")
+Precip_AgricultureNoStrat <- fread(file = "Precip_AgricultureNoStrat.csv")
+DataByWatershed <- fread(file = "DataByWatershed.csv")
+SurfaceWaterTemp <- fread(file = "SurfaceWaterTemp.csv")
+
+View(DataByWatershed)
+View(SurfaceWaterTemp)
+View(DataByWatershed)
+View(TP_Forest)
+
+View(MaxCD)
+
+
+
+#Summary statistics and standard deviations for the data set with location groups
+
+summary(MaxCD_Forest)
+sd(MaxCD_Forest$MaxCD_Forest)
+
+summary(MaxCD_AgricultureStrat)
+sd(MaxCD_AgricultureStrat$MaxCD_AgricultureStrat)
+
+summary(MaxCD_AgricultureNoStrat)
+sd(MaxCD_AgricultureNoStrat$MaxCD_AgricultureNoStrat)
+
+summary(TN_Forest)
+sd(TN_Forest$TN_Forest)
+
+summary(TN_AgricultureStrat)
+sd(TN_AgricultureStrat$TN_AgricultureStrat)
+
+summary(TN_AgricultureNoStrat)
+sd(TN_AgricultureNoStrat$TN_AgricultureNoStrat)
+
+summary(TP_Forest)
+sd(TP_Forest$TP_Forest)
+
+summary(TP_AgricultureStrat)
+sd(TP_AgricultureStrat$TP_AgricultureStrat)
+
+summary(TP_AgricultureNoStrat)
+sd(TP_AgricultureNoStrat$TP_AgricultureNoStrat)
+
+summary(Precip_Forest)
+sd(Precip_Forest$Precip_Forest)
+
+summary(Precip_AgricultureStrat)
+sd(Precip_AgricultureStrat$Precip_AgricultureStrat)
+
+summary(Precip_AgricultureNoStrat)
+sd(Precip_AgricultureNoStrat$Precip_AgricultureNoStrat)
+
+
+#Using dplyr to store summary stats in stargazer due to N/As for data set with location groups
+MaxCD_Forest_sum_stat <- MaxCD_Forest %>%
+  summarize(Statistic = "MaxCD_Forest",
+            N = n(),
+            Minimum = min(MaxCD_Forest),
+            Q1 = quantile(MaxCD_Forest, 0.25),
+            Mean = mean(MaxCD_Forest),
+            Median = median(MaxCD_Forest),
+            Q3 = quantile (MaxCD_Forest, 0.75),
+            Maximum = max(MaxCD_Forest),
+            St.Dev = sd(MaxCD_Forest))
+
+MaxCD_AgricultureStrat_sum_stat <- MaxCD_AgricultureStrat %>%
+  summarize(Statistic = "MaxCD_AgricultureStrat",
+            N = n(),
+            Minimum = min(MaxCD_AgricultureStrat),
+            Q1 = quantile(MaxCD_AgricultureStrat, 0.25),
+            Mean = mean(MaxCD_AgricultureStrat),
+            Median = median(MaxCD_AgricultureStrat),
+            Q3 = quantile (MaxCD_AgricultureStrat, 0.75),
+            Maximum = max(MaxCD_AgricultureStrat),
+            St.Dev = sd(MaxCD_AgricultureStrat))
+
+MaxCD_AgricultureNoStrat_sum_stat <- MaxCD_AgricultureNoStrat %>%
+  summarize(Statistic = "MaxCD_AgricultureNoStrat",
+            N = n(),
+            Minimum = min(MaxCD_AgricultureNoStrat),
+            Q1 = quantile(MaxCD_AgricultureNoStrat, 0.25),
+            Mean = mean(MaxCD_AgricultureNoStrat),
+            Median = median(MaxCD_AgricultureNoStrat),
+            Q3 = quantile (MaxCD_AgricultureNoStrat, 0.75),
+            Maximum = max(MaxCD_AgricultureNoStrat),
+            St.Dev = sd(MaxCD_AgricultureNoStrat))
+
+TN_Forest_sum_stat <- TN_Forest %>%
+  summarize(Statistic = "TN_Forest",
+            N = n(),
+            Minimum = min(TN_Forest),
+            Q1 = quantile(TN_Forest, 0.25),
+            Mean = mean(TN_Forest),
+            Median = median(TN_Forest),
+            Q3 = quantile (TN_Forest, 0.75),
+            Maximum = max(TN_Forest),
+            St.Dev = sd(TN_Forest))
+
+TN_AgricultureStrat_sum_stat <- TN_AgricultureStrat %>%
+  summarize(Statistic = "TN_AgricultureStrat",
+            N = n(),
+            Minimum = min(TN_AgricultureStrat),
+            Q1 = quantile(TN_AgricultureStrat, 0.25),
+            Mean = mean(TN_AgricultureStrat),
+            Median = median(TN_AgricultureStrat),
+            Q3 = quantile (TN_AgricultureStrat, 0.75),
+            Maximum = max(TN_AgricultureStrat),
+            St.Dev = sd(TN_AgricultureStrat))
+
+TN_AgricultureNoStrat_sum_stat <- TN_AgricultureNoStrat %>%
+  summarize(Statistic = "TN_AgricultureNoStrat",
+            N = n(),
+            Minimum = min(TN_AgricultureNoStrat),
+            Q1 = quantile(TN_AgricultureNoStrat, 0.25),
+            Mean = mean(TN_AgricultureNoStrat),
+            Median = median(TN_AgricultureNoStrat),
+            Q3 = quantile (TN_AgricultureNoStrat, 0.75),
+            Maximum = max(TN_AgricultureNoStrat),
+            St.Dev = sd(TN_AgricultureNoStrat))
+
+TP_Forest_sum_stat <- TP_Forest %>%
+  summarize(Statistic = "TP_Forest",
+            N = n(),
+            Minimum = min(TP_Forest),
+            Q1 = quantile(TP_Forest, 0.25),
+            Mean = mean(TP_Forest),
+            Median = median(TP_Forest),
+            Q3 = quantile (TP_Forest, 0.75),
+            Maximum = max(TP_Forest),
+            St.Dev = sd(TP_Forest))
+
+TP_AgricultureStrat_sum_stat <- TP_AgricultureStrat %>%
+  summarize(Statistic = "TP_AgricultureStrat",
+            N = n(),
+            Minimum = min(TP_AgricultureStrat),
+            Q1 = quantile(TP_AgricultureStrat, 0.25),
+            Mean = mean(TP_AgricultureStrat),
+            Median = median(TP_AgricultureStrat),
+            Q3 = quantile (TP_AgricultureStrat, 0.75),
+            Maximum = max(TP_AgricultureStrat),
+            St.Dev = sd(TP_AgricultureStrat))
+
+TP_AgricultureNoStrat_sum_stat <- TP_AgricultureNoStrat %>%
+  summarize(Statistic = "TP_AgricultureNoStrat",
+            N = n(),
+            Minimum = min(TP_AgricultureNoStrat),
+            Q1 = quantile(TP_AgricultureNoStrat, 0.25),
+            Mean = mean(TP_AgricultureNoStrat),
+            Median = median(TP_AgricultureNoStrat),
+            Q3 = quantile (TP_AgricultureNoStrat, 0.75),
+            Maximum = max(TP_AgricultureNoStrat),
+            St.Dev = sd(TP_AgricultureNoStrat))
+
+Precip_Forest_sum_stat <- Precip_Forest %>%
+  summarize(Statistic = "Precip_Forest",
+            N = n(),
+            Minimum = min(Precip_Forest),
+            Q1 = quantile(Precip_Forest, 0.25),
+            Mean = mean(Precip_Forest),
+            Median = median(Precip_Forest),
+            Q3 = quantile (Precip_Forest, 0.75),
+            Maximum = max(Precip_Forest),
+            St.Dev = sd(Precip_Forest))
+
+Precip_AgricultureStrat_sum_stat <- Precip_AgricultureStrat %>%
+  summarize(Statistic = "Precip_AgricultureStrat",
+            N = n(),
+            Minimum = min(Precip_AgricultureStrat),
+            Q1 = quantile(Precip_AgricultureStrat, 0.25),
+            Mean = mean(Precip_AgricultureStrat),
+            Median = median(Precip_AgricultureStrat),
+            Q3 = quantile (Precip_AgricultureStrat, 0.75),
+            Maximum = max(Precip_AgricultureStrat),
+            St.Dev = sd(Precip_AgricultureStrat))
+
+Precip_AgricultureNoStrat_sum_stat <- Precip_AgricultureNoStrat %>%
+  summarize(Statistic = "Precip_AgricultureNoStrat",
+            N = n(),
+            Minimum = min(Precip_AgricultureNoStrat),
+            Q1 = quantile(Precip_AgricultureNoStrat, 0.25),
+            Mean = mean(Precip_AgricultureNoStrat),
+            Median = median(Precip_AgricultureNoStrat),
+            Q3 = quantile (Precip_AgricultureNoStrat, 0.75),
+            Maximum = max(Precip_AgricultureNoStrat),
+            St.Dev = sd(Precip_AgricultureNoStrat))
+
+head(MaxCD_Forest_sum_stat)
+tail(MaxCD_Forest_sum_stat)
+
+LocationSummaryStats <- rbind(MaxCD_Forest_sum_stat, MaxCD_AgricultureStrat_sum_stat, 
+                              MaxCD_AgricultureNoStrat_sum_stat, TN_Forest_sum_stat, 
+                              TN_AgricultureStrat_sum_stat, TN_AgricultureNoStrat_sum_stat,
+                              TP_Forest_sum_stat, TP_AgricultureStrat_sum_stat, 
+                              TP_AgricultureNoStrat_sum_stat, Precip_Forest_sum_stat, 
+                              Precip_AgricultureStrat_sum_stat, Precip_AgricultureNoStrat_sum_stat)
+
+stargazer(LocationSummaryStats, summary = FALSE, title = "Variables Grouped by Watershed Type Descriptive Statistics")
+
+
+#PROBIT REGRESSION FOR FOREST
+#Probit regression
+forest_probit <- glm(MaxCD_Forest ~ TN_Forest + TP_Forest, data = DataByWatershed,
+                     family = binomial(link = "probit"))
+
+coeftest(forest_probit, vcovHC(forest_probit, "HC0"))
+#__________________________________________________________________________
+#                                 Initial models
+#__________________________________________________________________________
+#Build the models 
+
+Forest <- lm(MaxCD_Forest ~ TN_Forest + TP_Forest + Precip_Forest, data = DataByWatershed)
+
+AgricultureStrat <- lm(MaxCD_AgricultureStrat ~ TN_AgricultureStrat + TP_AgricultureStrat + Precip_AgricultureStrat, data = DataByWatershed)
+
+AgricultureNoStrat <- lm(MaxCD_AgricultureNoStrat ~ TN_AgricultureNoStrat + TP_AgricultureNoStrat + Precip_AgricultureNoStrat, data = DataByWatershed)
+
+#Create a list of robust standard errors:
+Watershed_rob_se <- list(sqrt(diag(vcovHC(Forest, type = "HC0"))),
+                         sqrt(diag(vcovHC(AgricultureStrat, type = "HC0"))),
+                         sqrt(diag(vcovHC(AgricultureNoStrat, type = "HC0"))))
+
+#Regression table using RSE in latex:
+stargazer(Forest, AgricultureStrat, AgricultureNoStrat, 
+          se = Watershed_rob_se, 
+          type = "text",
+          title = "Regression Table of Models Using Grouping by Watershed Type")
+
+#__________________________________________________________________________
+#                             
+#                                Updated models
+#  
+#__________________________________________________________________________
+# Update 1:                       SCATTERPLOTS
+#___________________________________________________________________________
+#                       Scatterplots for Forest 
+ggplot(DataByWatershed, aes(x = log(TN_Forest), y = log(MaxCD_Forest))) +
+  geom_point() +
+  geom_smooth(method = lm, se = FALSE) +
+  labs(title = "Scatterplot of Log(MaxCD_Forest) vs Log(TN_Forest)",
+       subtitle = "How Changes in log(TN_Forest) Affect log(MaxCD_Forest)",
+       x = "log(TN_Forest)", y = "log(MaxCD_Forest)") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5))
+
+ggplot(DataByWatershed, aes(x = log(TP_Forest), y = log(MaxCD_Forest))) +
+  geom_point() +
+  geom_smooth(method = lm, se = FALSE) +
+  labs(title = "Scatterplot of Log(MaxCD_Forest) vs Log(TP_Forest)",
+       subtitle = "How Changes in log(TP_Forest) Affect log(MaxCD_Forest)",
+       x = "log(TP_Forest)", y = "log(MaxCD_Forest)") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5))
+
+#############################################################################
+#                       Scatterplots for Ag_Strat 
+ggplot(DataByWatershed, aes(x = log(TN_AgricultureStrat), y = log(MaxCD_AgricultureStrat))) +
+  geom_point() +
+  geom_smooth(method = lm, se = FALSE) +
+  labs(title = "Scatterplot of Log(MaxCD_AgricultureStrat) vs Log(TN_AgricultureStrat)",
+       subtitle = "How Changes in log(TN_AgricultureStrat) Affect log(MaxCD_AgriculureStrat)",
+       x = "log(TN_AgricultureStrat)", y = "log(MaxCD_AgricultureStrat)") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5))
+
+ggplot(DataByWatershed, aes(x = log(TP_AgricultureStrat), y = log(MaxCD_AgricultureStrat))) +
+  geom_point() +
+  geom_smooth(method = lm, se = FALSE) +
+  labs(title = "Scatterplot of Log(MaxCD_AgricultureStrat) vs Log(TP_AgricultureStrat)",
+       subtitle = "How Changes in log(TP_AgricultureStrat) Affect log(MaxCD_AgricultureStrat)",
+       x = "log(TP_AgricultureStrat)", y = "log(MaxCD_AgricultureStrat)") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5))
+
+###############################################################################
+#                       Scatterplots for Ag_No_Strat 
+ggplot(DataByWatershed, aes(x = log(TN_AgricultureNoStrat), y = log(MaxCD_AgricultureNoStrat))) +
+  geom_point() +
+  geom_smooth(method = lm, se = FALSE) +
+  labs(title = "Scatterplot of Log(MaxCD_AgricultureNoStrat) vs Log(TN_AgricultureNoStrat)",
+       subtitle = "How Changes in log(TN_AgricultureNoStrat) Affect log(MaxCD_AgricultureNoStrat)",
+       x = "log(TN_AgricultureNoStrat)", y = "log(MaxCD_AgricultureNoStrat)") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5))
+
+ggplot(DataByWatershed, aes(x = log(TP_AgricultureNoStrat), y = log(MaxCD_AgricultureNoStrat))) +
+  geom_point() +
+  geom_smooth(method = lm, se = FALSE) +
+  labs(title = "Scatterplot of Log(MaxCD_AgricultureNoStrat) vs Log(TP_AgricultureNoStrat)",
+       subtitle = "How Changes in log(TP_AgricultureNoStrat) Affect log(MaxCD_AgricultureNoStrat)",
+       x = "log(TP_AgricultureNoStrat)", y = "log(MaxCD_AgricultureNoStrat)") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5))
+
+#__________________________________________________________________________
+# Update 2:                 Making Residual Plots
+#___________________________________________________________________________
+residualPlot(Forest)
+residualPlot(AgricultureStrat)
+residualPlot(AgricultureNoStrat)
+#__________________________________________________________________________
+# Update 2:                 Making Dummy Variables
+#___________________________________________________________________________
+View(MaxCD)
+View(DataByWatershed)
+View(SurfaceWaterTemp)
+
+# Making data frames and dummy variables
+# THIS SHOULD MEASURE IF SURFACE TEMP IS GREATER THAN 25 CELCIUS:
+
+# example of dummy variable creation
+Anscombe$inc_dum <- ifelse(Anscombe$income > 3500, 1, 0)
+head(Anscombe)
+
+
+# merging the data
+# DataByWatershed <- merge(DataByWatershed, SurfaceWaterTemp, by = "Surface Water Temp")
+
+DataByWatershed$MaxCD <- (DataByWatershed$MaxCD_Forest + DataByWatershed$MaxCD_AgricultureStrat + DataByWatershed$MaxCD_AgricultureNoStrat)
+
+# dummy variable attempt
+SurfaceWaterTemp$isForest <- ifelse(SurfaceWaterTemp$Type =="For", 1, 0)
+SurfaceWaterTemp$isTempHigh <- ifelse(SurfaceWaterTemp$Surface_Water_Temp >= 25 , 1, 0)
+
+# New models w log transformation and including precipitation and surface water temp
+TempModel <- lm(Surface_Water_Temp ~ isTempHigh + isForest, data = SurfaceWaterTemp)
+
+View(SurfaceWaterTemp)
+tail(SurfaceWaterTemp)
+#_________________________________________________________________________________
+# Update 3:                 Making new models w log transformation and precip
+#_________________________________________________________________________________
+
+# New models w log transformation and including precipitation
+Forest <- lm(log(MaxCD_Forest) ~ log(TN_Forest) + log(TP_Forest) + Precip_Forest, data = DataByWatershed)
+
+AgricultureStrat <- lm(log(MaxCD_AgricultureStrat) ~ log(TN_AgricultureStrat) + log(TP_AgricultureStrat) + Precip_AgricultureStrat, data = DataByWatershed)
+
+AgricultureNoStrat <- lm(log(MaxCD_AgricultureNoStrat) ~ log(TN_AgricultureNoStrat) + log(TP_AgricultureNoStrat) + Precip_AgricultureNoStrat, data = DataByWatershed)
+
+
+#Create a list of robust standard errors:
+Watershed_rob_se <- list(sqrt(diag(vcovHC(Forest, type = "HC0"))),
+                         sqrt(diag(vcovHC(AgricultureStrat, type = "HC0"))),
+                         sqrt(diag(vcovHC(AgricultureNoStrat, type = "HC0"))))
+
+#Regression table using RSE in latex:
+stargazer(Forest, AgricultureStrat, AgricultureNoStrat, se = Watershed_rob_se, 
+          title = "Regression Tables",
+          type = "text",
+          digits = 3,
+          column.labels = c("Mod A", "Mod B", "Mod C"))
+
+#____________________________________________________________________________________
+# New models w log transformation and including precipitation and surface water temp
+Forest <- lm(log(MaxCD_Forest) ~ log(TN_Forest) + log(TP_Forest) + Precip_Forest + SurfaceWaterTemp, data = DataByWatershed)
+
+#____________________________________________________________________________________
+# Update 4:               Running F statistic
+#____________________________________________________________________________________
+############################ Coef tests/F statistic on each model
+
+# Forest
+coeftest(Forest, vcovHC(Forest, "HC0"))
+
+# the f test returned a p value of greater than 0.05 for all of our variables
+# this means that we fail to reject the null and including these did not improve our models fit
+# however, precipitation had the lowest p value  0.34
+
+
+# Ag w strat
+coeftest(AgricultureStrat, vcovHC(AgricultureStrat, "HC0"))
+
+# the f test returned a p value of greater than 0.05 for all of our variables
+# except for total phosphorus, which has a p value of 0
+# this means that including total phosphorus did improve our models fit
+
+
+# Ag no strat
+coeftest(AgricultureNoStrat, vcovHC(AgricultureNoStrat, "HC0"))
+# the f test returned a p value of greater than 0.05 for all of our variables
+# however, it was 
+
+# total nitrogen had the highest p value in our all models for agricultural locations
+# meanwhile total phosphorus had the highest p value for our forest location
+
+# Unable to get this because of differences in number of observations
+AIC(Forest, AgricultureStrat, AgricultureNoStrat)
+
+
+#____________________________________________________________________________________
+# Update 5:               Checking for multicollinearity
+#____________________________________________________________________________________
+vif(Forest)
+
+vif(AgricultureStrat)
+
+vif(AgricultureNoStrat)
+
+#____________________________________________________________________________________
+# Update 3:               Getting descriptive statistics
+#____________________________________________________________________________________
+# need to update this so that it's log transformed
+
+summary(log(MaxCD_Forest))
+sd(log(MaxCD_Forest$MaxCD_Forest))
+
+summary(MaxCD_AgricultureStrat)
+sd(MaxCD_AgricultureStrat$MaxCD_AgricultureStrat)
+
+summary(MaxCD_AgricultureNoStrat)
+sd(MaxCD_AgricultureNoStrat$MaxCD_AgricultureNoStrat)
+
+summary(TN_Forest)
+sd(TN_Forest$TN_Forest)
+
+summary(TN_AgricultureStrat)
+sd(TN_AgricultureStrat$TN_AgricultureStrat)
+
+summary(TN_AgricultureNoStrat)
+sd(TN_AgricultureNoStrat$TN_AgricultureNoStrat)
+
+summary(TP_Forest)
+sd(TP_Forest$TP_Forest)
+
+summary(TP_AgricultureStrat)
+sd(TP_AgricultureStrat$TP_AgricultureStrat)
+
+summary(TP_AgricultureNoStrat)
+sd(TP_AgricultureNoStrat$TP_AgricultureNoStrat)
+
+summary(Precip_Forest)
+sd(Precip_Forest$Precip_Forest)
+
+summary(Precip_AgricultureStrat)
+sd(Precip_AgricultureStrat$Precip_AgricultureStrat)
+
+summary(Precip_AgricultureNoStrat)
+sd(Precip_AgricultureNoStrat$Precip_AgricultureNoStrat)
+
+
+#Using dplyr to store summary stats in stargazer due to N/As for data set with location groups
+MaxCD_Forest_sum_stat <- MaxCD_Forest %>%
+  summarize(Statistic = "MaxCD_Forest",
+            N = n(),
+            Minimum = min(MaxCD_Forest),
+            Q1 = quantile(MaxCD_Forest, 0.25),
+            Mean = mean(MaxCD_Forest),
+            Median = median(MaxCD_Forest),
+            Q3 = quantile (MaxCD_Forest, 0.75),
+            Maximum = max(MaxCD_Forest),
+            St.Dev = sd(MaxCD_Forest))
+
+MaxCD_AgricultureStrat_sum_stat <- MaxCD_AgricultureStrat %>%
+  summarize(Statistic = "MaxCD_AgricultureStrat",
+            N = n(),
+            Minimum = min(MaxCD_AgricultureStrat),
+            Q1 = quantile(MaxCD_AgricultureStrat, 0.25),
+            Mean = mean(MaxCD_AgricultureStrat),
+            Median = median(MaxCD_AgricultureStrat),
+            Q3 = quantile (MaxCD_AgricultureStrat, 0.75),
+            Maximum = max(MaxCD_AgricultureStrat),
+            St.Dev = sd(MaxCD_AgricultureStrat))
+
+MaxCD_AgricultureNoStrat_sum_stat <- MaxCD_AgricultureNoStrat %>%
+  summarize(Statistic = "MaxCD_AgricultureNoStrat",
+            N = n(),
+            Minimum = min(MaxCD_AgricultureNoStrat),
+            Q1 = quantile(MaxCD_AgricultureNoStrat, 0.25),
+            Mean = mean(MaxCD_AgricultureNoStrat),
+            Median = median(MaxCD_AgricultureNoStrat),
+            Q3 = quantile (MaxCD_AgricultureNoStrat, 0.75),
+            Maximum = max(MaxCD_AgricultureNoStrat),
+            St.Dev = sd(MaxCD_AgricultureNoStrat))
+
+TN_Forest_sum_stat <- TN_Forest %>%
+  summarize(Statistic = "TN_Forest",
+            N = n(),
+            Minimum = min(TN_Forest),
+            Q1 = quantile(TN_Forest, 0.25),
+            Mean = mean(TN_Forest),
+            Median = median(TN_Forest),
+            Q3 = quantile (TN_Forest, 0.75),
+            Maximum = max(TN_Forest),
+            St.Dev = sd(TN_Forest))
+
+TN_AgricultureStrat_sum_stat <- TN_AgricultureStrat %>%
+  summarize(Statistic = "TN_AgricultureStrat",
+            N = n(),
+            Minimum = min(TN_AgricultureStrat),
+            Q1 = quantile(TN_AgricultureStrat, 0.25),
+            Mean = mean(TN_AgricultureStrat),
+            Median = median(TN_AgricultureStrat),
+            Q3 = quantile (TN_AgricultureStrat, 0.75),
+            Maximum = max(TN_AgricultureStrat),
+            St.Dev = sd(TN_AgricultureStrat))
+
+TN_AgricultureNoStrat_sum_stat <- TN_AgricultureNoStrat %>%
+  summarize(Statistic = "TN_AgricultureNoStrat",
+            N = n(),
+            Minimum = min(TN_AgricultureNoStrat),
+            Q1 = quantile(TN_AgricultureNoStrat, 0.25),
+            Mean = mean(TN_AgricultureNoStrat),
+            Median = median(TN_AgricultureNoStrat),
+            Q3 = quantile (TN_AgricultureNoStrat, 0.75),
+            Maximum = max(TN_AgricultureNoStrat),
+            St.Dev = sd(TN_AgricultureNoStrat))
+
+TP_Forest_sum_stat <- TP_Forest %>%
+  summarize(Statistic = "TP_Forest",
+            N = n(),
+            Minimum = min(TP_Forest),
+            Q1 = quantile(TP_Forest, 0.25),
+            Mean = mean(TP_Forest),
+            Median = median(TP_Forest),
+            Q3 = quantile (TP_Forest, 0.75),
+            Maximum = max(TP_Forest),
+            St.Dev = sd(TP_Forest))
+
+TP_AgricultureStrat_sum_stat <- TP_AgricultureStrat %>%
+  summarize(Statistic = "TP_AgricultureStrat",
+            N = n(),
+            Minimum = min(TP_AgricultureStrat),
+            Q1 = quantile(TP_AgricultureStrat, 0.25),
+            Mean = mean(TP_AgricultureStrat),
+            Median = median(TP_AgricultureStrat),
+            Q3 = quantile (TP_AgricultureStrat, 0.75),
+            Maximum = max(TP_AgricultureStrat),
+            St.Dev = sd(TP_AgricultureStrat))
+
+TP_AgricultureNoStrat_sum_stat <- TP_AgricultureNoStrat %>%
+  summarize(Statistic = "TP_AgricultureNoStrat",
+            N = n(),
+            Minimum = min(TP_AgricultureNoStrat),
+            Q1 = quantile(TP_AgricultureNoStrat, 0.25),
+            Mean = mean(TP_AgricultureNoStrat),
+            Median = median(TP_AgricultureNoStrat),
+            Q3 = quantile (TP_AgricultureNoStrat, 0.75),
+            Maximum = max(TP_AgricultureNoStrat),
+            St.Dev = sd(TP_AgricultureNoStrat))
+
+Precip_Forest_sum_stat <- Precip_Forest %>%
+  summarize(Statistic = "Precip_Forest",
+            N = n(),
+            Minimum = min(Precip_Forest),
+            Q1 = quantile(Precip_Forest, 0.25),
+            Mean = mean(Precip_Forest),
+            Median = median(Precip_Forest),
+            Q3 = quantile (Precip_Forest, 0.75),
+            Maximum = max(Precip_Forest),
+            St.Dev = sd(Precip_Forest))
+
+Precip_AgricultureStrat_sum_stat <- Precip_AgricultureStrat %>%
+  summarize(Statistic = "Precip_AgricultureStrat",
+            N = n(),
+            Minimum = min(Precip_AgricultureStrat),
+            Q1 = quantile(Precip_AgricultureStrat, 0.25),
+            Mean = mean(Precip_AgricultureStrat),
+            Median = median(Precip_AgricultureStrat),
+            Q3 = quantile (Precip_AgricultureStrat, 0.75),
+            Maximum = max(Precip_AgricultureStrat),
+            St.Dev = sd(Precip_AgricultureStrat))
+
+Precip_AgricultureNoStrat_sum_stat <- Precip_AgricultureNoStrat %>%
+  summarize(Statistic = "Precip_AgricultureNoStrat",
+            N = n(),
+            Minimum = min(Precip_AgricultureNoStrat),
+            Q1 = quantile(Precip_AgricultureNoStrat, 0.25),
+            Mean = mean(Precip_AgricultureNoStrat),
+            Median = median(Precip_AgricultureNoStrat),
+            Q3 = quantile (Precip_AgricultureNoStrat, 0.75),
+            Maximum = max(Precip_AgricultureNoStrat),
+            St.Dev = sd(Precip_AgricultureNoStrat))
+
+head(MaxCD_Forest_sum_stat)
+tail(MaxCD_Forest_sum_stat)
+
+LocationSummaryStats <- rbind(MaxCD_Forest_sum_stat, MaxCD_AgricultureStrat_sum_stat, 
+                              MaxCD_AgricultureNoStrat_sum_stat, TN_Forest_sum_stat, 
+                              TN_AgricultureStrat_sum_stat, TN_AgricultureNoStrat_sum_stat,
+                              TP_Forest_sum_stat, TP_AgricultureStrat_sum_stat, 
+                              TP_AgricultureNoStrat_sum_stat, Precip_Forest_sum_stat, 
+                              Precip_AgricultureStrat_sum_stat, Precip_AgricultureNoStrat_sum_stat)
+
+stargazer(LocationSummaryStats, summary = FALSE, title = "Variables Grouped by Watershed Type Descriptive Statistics")
+
+
+
+#____________________________________________________________________________
+# one big model w everything in it
+#____________________________________________________________________________
+# New models w log transformation and including precipitation
+Forest <- lm(log(MaxCD_Forest) ~ log(TN_Forest) + log(TP_Forest) + Precip_Forest, data = DataByWatershed)
+
+# Data frames for DataByWatershed
+DataByWatershed$MaxCD <- (DataByWatershed$MaxCD_Forest + DataByWatershed$MaxCD_AgricultureStrat + DataByWatershed$MaxCD_AgricultureNoStrat)
+DataByWatershed$TP <- (DataByWatershed$TP_Forest + DataByWatershed$TP_AgricultureStrat + DataByWatershed$TP_AgricultureNoStrat)
+DataByWatershed$TN <- (DataByWatershed$TN_Forest + DataByWatershed$TN_AgricultureStrat + DataByWatershed$TN_AgricultureNoStrat)
+DataByWatershed$Precip <- (DataByWatershed$Precip_Forest + DataByWatershed$Precip_AgricultureStrat + DataByWatershed$Precip_AgricultureNoStrat)
+
+View(DataByWatershed)
+
+BigMod <- lm(log(MaxCD) ~ log(TN) + log(TP) + Precip, data = DataByWatershed)
+
+Watershed_rob_se <- list(sqrt(diag(vcovHC(BigFatty, type = "HC0"))))
+
+
+#Create a list of robust standard errors:
+Watershed_rob_se <- list(sqrt(diag(vcovHC(Forest, type = "HC0"))),
+                         sqrt(diag(vcovHC(AgricultureStrat, type = "HC0"))),
+                         sqrt(diag(vcovHC(AgricultureNoStrat, type = "HC0"))))
+
+#Regression table using RSE in latex:
+stargazer(BigMod, se = Watershed_rob_se, 
+          title = "Big Regression Table",
+          type = "text",
+          digits = 3,
+          column.labels = c("Mod A"))
+
+
+# Heteroskedasticity Tests
+residualPlot(mod1)
+residualPlot(mod2)
+
+ggplot(BigMod, aes(x = log(TN), y = log(MaxCD))) +
+  geom_point() +
+  geom_smooth(method = lm, se = FALSE) +
+  labs(title = "Scatterplot of Log(Cyanobacteria) vs Log(TN)",
+       subtitle = "How Changes in log(TN) Affect log(Cyanobacteria)",
+       x = "log(TN)", y = "log(Cyanobacteria)") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5))
+
+
+ggplot(BigMod, aes(x = log(TP), y = log(MaxCD))) +
+  geom_point() +
+  geom_smooth(method = lm, se = FALSE) +
+  labs(title = "Scatterplot of Log(Cyanobacteria) vs Log(TP)",
+       subtitle = "How Changes in log(TP) Affect log(Cyanobacteria)",
+       x = "log(TP)", y = "log(Cyanobacteria)") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5))
+
+
+ggplot(BigMod, aes(x = log(Prec), y = log(MaxCD))) +
+  geom_point() +
+  geom_smooth(method = lm, se = FALSE) +
+  labs(title = "Scatterplot of Log(Cyanobacteria) vs Log(Prec)",
+       subtitle = "How Changes in log(Prec) Affect log(Cyanobacteria)",
+       x = "log(Prec)", y = "log(Cyanobacteria)") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5))
+
+
+ggplot(BigMod, aes(x = log(SurfacWaterTemp), y = log(MaxCD))) +
+  geom_point() +
+  geom_smooth(method = lm, se = FALSE) +
+  labs(title = "Scatterplot of Log(Cyanobacteria) vs Log(SurfaceWaterTemp)",
+       subtitle = "How Changes in log(SurfaceWaterTemp) Affect log(Cyanobacteria)",
+       x = "log(SurfaceWaterTemp)", y = "log(Cyanobacteria)") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5))
+
+
+# Multicollinearity Tests
+white(mod1)
+white(mod2)
+
+bptest(mod1)
+bptest(mod2)
+
+gqtest(MaxCD,
+       order.by = ~TP,
+       data = BigMod,
+       fraction = 0.2)
+
+gqtest(MaxCD,
+       order.by = ~TN,
+       data = BigMod,
+       fraction = 0.2)
+
+gqtest(MaxCD,
+       order.by = ~Prec,
+       data = BigMod,
+       fraction = 0.2)
+
+gqtest(MaxCD,
+       order.by = ~SurfaceWaterTemp,
+       data = BigMod,
+       fraction = 0.2)
+
+
+# Coef Tests
+coeftest(mod1, vcovHC(mod1, "HC0"))
+coeftest(mod2, vcovHC(mod2, "HC0"))
+
